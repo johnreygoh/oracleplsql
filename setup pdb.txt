@@ -1,0 +1,53 @@
+1. login cdb (container database)
+12c+ cdb->(pluggable databases)
+
+\> sqlplus / as sysdba
+\> sqlplus john/123@192.168.200.100/ORCL
+
+SQL> show pdbs;
+
+19c
+ORCLPDB
+
+21c XE
+XEPDB1
+
+[READ WRITE]
+
+--close-open pdb
+SQL> alter pluggable database xepdb1 close;
+SQL> alter pluggable database xepdb1 open;
+
+2. login to pdb1 and unlock users (hr) , with tables
+
+\> sqlplus system/123@192.168.200.100:1521/xepdb1
+SQL> select username from dba_users;		--is hr account there?
+SQL> alter user hr account unlock;
+SQL> alter user hr identified by 123;
+SQL> exit
+
+
+username = hr		|	system
+password = 123		|	123
+service =  xepdb1	
+host = <ip address>
+
+3. connect to sql developer
+
+4. create our own pdb
+
+\> sqlplus / as sysdba
+
+SQL> alter session set pdb_file_name_convert = 
+'C:\app\core360\product\18.0.0\oradata\XE\pdbseed\',
+'C:\app\core360\product\18.0.0\oradata\XE\mypdb\';
+
+SQL> create pluggable database mypdb admin user mypdbadmin identified by 123; 
+SQL> show pdbs;
+SQL> alter pluggable database mypdb open;
+SQL> show pdbs;
+ 
+username: mypdbadmin 
+password: 123
+service: mypdb 
+host: <ipaddress>
