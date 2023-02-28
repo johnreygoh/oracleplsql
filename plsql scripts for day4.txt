@@ -106,4 +106,105 @@ exception
 
 end;
 /
+--------------------------------
+
+--errors in declare can be handled by enclosing block
+begin
+    declare 
+        a number(3) := '34x';
+        
+    begin
+        
+        dbms_output.put_line('number is '|| a);
+    exception
+        when others then
+        dbms_output.put_line('run time error');
+    end;
+exception
+    when others then
+    dbms_output.put_line('run time error');
+
+end;
+
+----------------------------------------------------------
+--sql%notfound
+
+begin
+    delete from emp where empno=10;
+    if sql%notfound then
+        dbms_output.put_line('record not deleted');
+    else
+        dbms_output.put_line('record deleted');
+    end if;    
+end;
+
+------------------------------------------------------------
+--sql%found
+
+begin
+    delete from emp where empno=4;
+    if sql%found then
+        dbms_output.put_line('record deleted');
+    else
+        dbms_output.put_line('record not deleted');
+    end if;    
+end;
+
+-------------------------------------------------------
+
+drop table emp;
+create table emp (empno number(3) primary key,empname varchar2(30),job varchar2(20), department varchar2(3), salary number(5));
+truncate table emp;
+
+insert into emp values (1,'jojo','mis','10',80000);
+insert into emp values (2,'joan','mis','20',56000);
+insert into emp values (3,'dexter','hr','30',82500);
+
+select * from emp;
+
+------------------------------------------------
+
+--demo user-defined cursor
+declare
+    cursor c1 is select empno,empname,job from emp where department=10;
+    rec c1%rowtype; 
+begin
+    open c1;
+    loop
+        fetch c1 into rec;
+        exit when c1%notfound;
+        dbms_output.put_line('emp no:' || rec.empno);
+        dbms_output.put_line('emp name:' || rec.empname);
+        dbms_output.put_line('job:' || rec.job);
+    end loop;
+    close c1;
+end;
+/
+
+-----------------------------------------------------------------
+
+--demo 2 of user-defined cursor
+--top 5 emp based on salary
+declare
+    ename emp.empname%type;
+    esalary emp.salary%type;
+    cursor temp1 is select empname,salary from emp order by salary desc;
+
+begin
+    open temp1;
+    loop
+        fetch temp1 into ename,esalary;
+        exit when temp1%rowcount>3 or temp1%notfound;
+        dbms_output.put_line(ename || ' ' || esalary);
+    end loop;
+    close temp1;
+end;
+/
+
+
+
+
+
+
+
 
