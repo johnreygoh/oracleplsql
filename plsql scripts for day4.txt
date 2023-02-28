@@ -1,0 +1,109 @@
+drop table emp;
+create table emp (empno number(3) primary key,empname varchar2(30),job varchar2(20), salary number(5));
+truncate table emp;
+
+insert into emp values (1,'jojo','mis',80000);
+insert into emp values (2,'joan','mis',56000);
+insert into emp values (3,'dexter','hr',82500);
+
+select * from emp;
+
+------------------------------
+--error handling 1
+DECLARE
+    --n emp.empname%type;
+    n char(1);
+BEGIN
+    select empname into n from emp where empno = 1;
+    dbms_output.put_line('name:' || n);
+EXCEPTION
+    when NO_DATA_FOUND then
+        dbms_output.put_line('NO RECORDS FOUND FOR GIVEN EMP NUMBER!');
+    when TOO_MANY_ROWS then
+        dbms_output.put_line('You got too many records!');
+    when VALUE_ERROR then
+        dbms_output.put_line('Error found. Please contact Sir Dexter!');
+END;
+
+-----------------------------------
+--zero divide
+DECLARE
+    n number;
+
+BEGIN
+    n := 4/0;
+    dbms_output.put_line('ans:' || n);
+EXCEPTION
+    when ZERO_DIVIDE then
+        dbms_output.put_line('dividing by zero');
+
+END;
+
+-----------------------
+
+--sample for invalid number
+BEGIN
+    insert into emp values (4,'kenneth','Admin','70000A');
+exception
+    when INVALID_NUMBER then
+    dbms_output.put_line('MALI INPUT NUMBER DAPAT');
+
+end;
+
+-------------------------------------------------------
+
+--creating user exceptions
+declare
+    bigValue exception;
+    PRAGMA exception_init(bigValue,-01438);
+    numConversion exception;
+    PRAGMA exception_init(numConversion,-06502);
+    A number(3);
+
+begin
+
+    A := TO_NUMBER('45');
+    insert into emp values (4,'diana','mis',12000);
+
+exception
+    when numConversion then
+    dbms_output.put_line('error conversion');
+
+    when bigValue then
+    dbms_output.put_line('value too much');
+
+end;
+
+-----------------------------------------
+
+drop table item;
+drop table item_order;
+create table item (itemno number(3) primary key, name char(30), rate number(3), qty number(5));
+
+insert into item values(1, 'pen',10, 1000);
+insert into item values(2, 'pencil',10, 4);
+
+create table item_order (orderno number(3) primary key, itemno number(3), name char(30), qty number (3));
+
+------------------------------------------------------
+
+--raise custom exception
+declare 
+    out_of_stock exception;
+    rec item%rowtype;
+begin
+    select * into rec from item where itemno=2;
+        if rec.qty < 5 then
+            raise out_of_stock;
+        end if;
+    
+    dbms_output.put_line('quantity in stock: ' || rec.qty);
+
+exception
+    when out_of_stock then
+        insert into item_order values (1,rec.itemno,rec.name,100);
+        dbms_output.put_line('order placed successfully');
+
+end;
+/
+

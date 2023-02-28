@@ -1,0 +1,188 @@
+ex.1
+
+--multiplication table
+declare 
+  tableof number:=3;
+  mycount number:=1;
+  mresult number;
+begin
+  while mycount <= 10
+  loop
+    mresult := tableof * mycount;
+    dbms_output.put_line(tableof || ' x ' || mycount || '=' || mresult);
+    mycount := mycount + 1;
+  end loop;
+end;
+/
+------------------------------------
+
+ex.2
+
+--pl/sql block to calculate INTEREST for same PRINCIPAL and TIME, different RATE OF INTEREST, starts from 5%
+--and store result in a sample table "SAMPLE_INTEREST" (PRINCIPAL,RATE, TIME, SI)
+create table SAMPLE_INTEREST (principal number,rate number, mytime number, si number);
+
+declare 
+  principal number:=100;
+  rateOfInterest number := 5;
+  timeInYear number := 2;
+  simpleInterest number(6,2);
+begin
+  while rateOfInterest <= 15
+  loop
+    simpleInterest := (principal * rateOfInterest * timeInYear)/100;
+    insert into SAMPLE_INTEREST (principal,rate,mytime,si) 
+      values (principal,rateOfInterest,timeInYear,simpleInterest);
+    rateOfInterest := rateOfInterest + 1;
+  end loop;
+end;
+/
+
+select * from SAMPLE_INTEREST;
+
+----------------------------------------------
+ex.3
+
+--for loop
+declare
+  i number;
+begin
+  --for i in 5..20
+  for i in REVERSE 5..20
+  loop
+    dbms_output.put_line('value of i:' || i);
+  end loop;
+
+end;
+/
+
+------------------------------------
+ex. 5
+
+--for loop
+declare
+  i number;
+  mysum number;
+begin
+  --for i in 5..20
+  for i in REVERSE 5..20
+  loop
+    
+    if i = 10 then
+    dbms_output.put_line('this is TEN!');
+    else
+    dbms_output.put_line('value of i:' || i);
+    end if;
+
+    exit when i <=7;
+
+  end loop;
+
+
+end;
+/
+--------------------------
+
+ex. 6
+
+--continue
+declare 
+  ctr number;
+begin
+  for ctr in 1..10
+  loop
+    --skip odd numbers
+    if mod(ctr,2) = 1 then
+      continue;
+    end if;
+    dbms_output.put_line(ctr);
+  end loop;
+
+end;
+/
+
+-----------------------------------------------
+
+ex. 7
+
+--goto
+
+begin
+
+  goto am;
+  
+  <<am>>
+  dbms_output.put_line('good am');
+  goto my_exit;
+
+  <<pm>>
+  dbms_output.put_line('good pm');
+  goto my_exit;
+
+  <<eve>>
+  dbms_output.put_line('good eve');
+  goto my_exit;
+
+  <<my_exit>>
+  dbms_output.put_line('bye!');
+    
+end;
+/
+
+---------------------------------------------
+
+ex. 8
+
+--NULL
+declare
+  a number := 10;
+  b number := 5;
+begin
+
+  if a>b then
+    null;
+    --dbms_output.put_line('a greater than b');
+  else
+    null;
+    --comment
+  end if;
+
+end;
+/
+
+
+---------------------------------------------
+ex. 9
+
+begin
+
+  goto task2;
+
+  <<task1>>
+  null;
+  --comment
+  
+  <<task2>>
+  null;
+  --comment
+  
+  <<task3>>
+  null;
+  --comment
+  
+
+end;
+/
+
+-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
