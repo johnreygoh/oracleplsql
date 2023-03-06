@@ -1,0 +1,374 @@
+--display / get records of department 10
+--select * from emp where department = 10
+declare
+    cursor c1 is SELECT EMPNO,EMPNAME,JOB from emp WHERE DEPARTMENT=10;
+    rec c1%rowtype;
+
+begin
+
+    open c1;
+    loop
+        fetch c1 into rec;
+        exit when c1%notfound;
+        --action
+        dbms_output.put_line('id:'||rec.empno);
+        dbms_output.put_line('name:'||rec.empname);
+        dbms_output.put_line('job:'||rec.job);
+    end loop;
+    close c1;
+end;
+/
+-----------------------------------------------------------------
+
+--get name and salary top 3 based on salary
+declare
+    cursor temp1 is SELECT EMPNAME,SALARY FROM EMP ORDER BY SALARY DESC;
+    ename emp.empname%type;
+    esal emp.salary%type;
+
+begin
+    open temp1;
+    loop
+        fetch temp1 into ename,esal;
+        exit when temp1%rowcount>3 or temp1%notfound;
+        --action
+        dbms_output.put_line(ename || ' ' || esal);
+    end loop;
+    close temp1;
+end;
+/
+
+--------------------------------------------------------------------
+
+--dept 10 +1000, dept 20 +500, dept 30 +300
+declare
+    cursor c1 is SELECT * FROM EMP;
+    rec c1%rowtype;
+    oldsal number;
+    newsal number;
+
+begin
+    open c1;
+    loop
+        fetch c1 into rec;
+        exit when c1%notfound;
+        select salary into oldsal from emp where empno = rec.empno;
+        
+        if rec.department = 10 then
+            update emp set salary=salary+1000 where empno = rec.empno;
+            select salary into newsal from emp where empno=rec.empno;
+        end if;
+
+        if rec.department = 20 then
+            update emp set salary=salary+500 where empno = rec.empno;
+            select salary into newsal from emp where empno=rec.empno;
+        end if;
+
+        if rec.department = 30 then
+            update emp set salary=salary+300 where empno = rec.empno;
+            select salary into newsal from emp where empno=rec.empno;
+        end if;
+
+        insert into emptemp values (rec.empno,oldsal,newsal);
+        dbms_output.put_line('done');
+    end loop;
+    close c1;
+end;
+/
+-----------------------------------------------
+--using cursor for-loop
+--automatic rec variable
+--auto open, auto close
+declare
+    cursor c1 is SELECT EMPNO,EMPNAME,JOB FROM EMP where department=10; 
+
+begin
+    for rec in c1 
+    loop
+        --action
+        dbms_output.put_line(rec.empno || ' ' || rec.empname || ' ' || rec.job );
+    end loop;
+end;
+/
+-----------------------------------------------------
+
+--sample procedure
+--supply 2 numbers, return + - / *
+declare
+    num1 number;
+    num2 number;
+    mysum number;
+    mydiff number;
+    myprod number;
+    myquo number;
+    
+    procedure process1
+        (
+        num1 IN number,
+        num2 IN number,
+        mysum OUT number,
+        mydiff OUT number,
+        myprod OUT number,
+        myquo OUT number
+        ) is
+            begin
+                mysum := num1 + num2;
+                mydiff := num1 - num2;
+                myprod := num1 * num2;
+                myquo := num1 / num2;
+            end;
+begin
+    num1 := &firstnumber;
+    num2 := &secondnumber;
+    
+    --call procedure
+    process1(num1,num2,mysum,mydiff,myprod,myquo);
+
+    --use the output from the procedure
+    dbms_output.put_line('sum:' || mysum);
+    dbms_output.put_line('difference:' || mydiff);
+    dbms_output.put_line('product:' || myprod);
+    dbms_output.put_line('quotient:' || myquo);
+end;
+/
+--------------------------------------------------------
+
+--procedure to increase salary with 2 inputs, empno and amount to be added to salary
+--update database
+
+declare
+    empno number;
+    amount number;
+    
+    procedure raise_salary(id IN number, increase IN number)
+    is
+        curr_salary number;
+        salary_missing exception;
+        begin
+            select salary into curr_salary from emp where empno=id;
+            if curr_salary is null then
+                raise salary_missing;
+            else
+                update emp set salary=salary+increase where empno=id;
+                dbms_output.put_line('update ok');
+            end if;
+
+        exception
+            when NO_DATA_FOUND then
+            dbms_output.put_line('NO VALUES FOUND');
+            when salary_missing then
+            dbms_output.put_line('NO SALARY FOUND');
+        
+        end raise_salary;
+
+begin
+
+empno := &empno;
+amount := &amount;
+raise_salary(empno,amount);
+end;
+/
+----------------------------------------------
+
+--stored procedure to perform math operations
+create or replace procedure process1
+(
+    a IN number,
+    b IN number,
+    c OUT number,
+    d OUT number,
+    e OUT number,
+    f OUT number
+) is
+begin
+    c:=a+b;
+    d:=a-b;
+    e:=a*b;
+    f:=a/b;
+
+end;
+/
+------------------------------------------------------------
+--use process1 stored procedure
+declare
+    a number;
+    b number;
+    c number;
+    d number;
+    e number;
+    f number;
+begin
+    a := &firstnumber;
+    b := &secondnumber;
+    
+    --call procedure
+    process1(a,b,c,d,e,f);
+    
+    --utilize output values
+    dbms_output.put_line('sum: '|| c);
+    dbms_output.put_line('difference: '|| d);
+    dbms_output.put_line('product: '|| e);
+    dbms_output.put_line('quotient: '|| f);
+end;
+/
+
+--------------------------------------------------------------
+
+--procedure to delete a record in emp using empno
+create or replace procedure fire_employee
+(
+    id IN number
+)
+as
+begin
+    delete from emp where empno = id;
+end;
+/
+----------------------------------------------
+
+--plsql to call the sproc
+declare
+    eid number := &id_to_delete;
+begin
+    fire_employee(eid);
+end;
+
+--------------------------------------------
+
+--plsql to get all records
+create or replace procedure getall
+(
+    id in number,
+    rec out emp%rowtype
+)
+as
+begin
+    select * into rec from emp where empno=id;
+end;
+
+
+-------------------------------------------------
+--sample call to perform search by id
+declare
+    id number:= &idToSearch;
+    rec emp%rowtype;
+begin
+    getall(id,rec);
+    dbms_output.put_line(rec.empno || ' ' || rec.empname);
+end;
+
+----------------------------------------------
+
+--sample local function to add numbers
+declare
+    in1 number;
+    in2 number;
+    mysum number;
+    
+    function addn
+    (
+        in1 in number,
+        in2 in number
+    ) return number 
+    is
+    begin
+        mysum := in1 + in2;
+        return(mysum);
+    end;
+begin
+    in1 := &input1;
+    in2 := &input2;
+    mysum := addn(in1,in2);
+    dbms_output.put_line('sum is '||mysum);
+
+end;
+/
+
+---------------------------------------------------------
+
+--create a stored function to add 2 numbers
+create or replace function addn
+(
+    n1 in number,
+    n2 in number
+) return number 
+is
+    --variables
+    ans number;
+
+begin
+    ans := n1+n2;
+    return(ans);
+end;
+/
+
+-----------------------------------------
+
+--ustilize stored function
+declare
+    a number := &number1;
+    b number := &number2;
+    c number;
+    
+begin
+    c := addn(a,b);
+    dbms_output.put_line('sum is '|| c);
+
+end;
+/
+--------------------------------------------
+
+built-in functions
+
+TO_CHAR()
+TO_NUMBER()
+
+-------------------------------------------------
+
+triggers
+--action before/after/instead in executing dml/ddl
+
+commonly used:
+before insert
+after insert
+before insert row
+before insert statement
+
+------------------------------------------------------
+
+--create trigger show empname oldvalues and newvalues when we update emp table
+create or replace trigger name_update
+    after update of empname on emp for each row
+begin
+    dbms_output.put_line('old name:' || :old.empname);
+    dbms_output.put_line('new name:'|| :new.empname);
+end;
+
+
+--------------------------------------------------------------------
+
+--create trigger when add value, new entry in an audit table
+--create table table_audit(empno number, operation varchar2(20));
+create or replace trigger emp_audit
+    after insert or update or delete on emp for each row
+begin
+    if inserting then
+        insert into table_audit values(:new.empno,'INSERT');
+    elsif updating then
+        insert into table_audit values(:new.empno,'UPDATE');
+    elsif deleting then
+        insert into table_audit values(:old.empno,'DELETE');
+    end if;
+
+end;
+/
+    
+
+
+
+
+
+
+
+
+
